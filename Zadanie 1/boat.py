@@ -1,5 +1,6 @@
 import socket
 import json
+import sys
 from generator import generate_coordinates
 from time import sleep
 
@@ -16,7 +17,7 @@ class Server:
         client, addr = self.boat.accept()
 
         for i in range(self.n):
-            response_body = json.dumps(generate_coordinates())
+            response_body = json.dumps((generate_coordinates(), self.t))
             if i < self.n - 1:
                 client.send(bytes("HTTP/1.1 200 OK\n"
                                   + "Content-Type: application/json\n"
@@ -36,4 +37,12 @@ class Server:
         client.close()
 
 
-Server(3, 1).run()
+if __name__ == "__main__":
+    n = int(sys.argv[1])
+    if n < 5:
+        raise Exception("First argument can't be lower than 5")
+    t = int(sys.argv[2])
+    if t < 0:
+        raise Exception("Second argument can't be lower than 0")
+    
+    Server(n, t).run()
