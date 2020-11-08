@@ -23,12 +23,10 @@ def generate_rook_moves():
 
 class Piece:
     def __init__(self):
-        # TODO: Wywalic self.is_null
         self.valid_moves = ()
         self.attacked_fields = []
         self.defended_fields = []
         self.color = ''
-        self.is_null = True
 
 
 class King(Piece):
@@ -36,7 +34,6 @@ class King(Piece):
         super().__init__()
         self.valid_moves = ((-1, -1), (-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1))
         self.color = color
-        self.is_null = False
 
 
 class Queen(Piece):
@@ -48,7 +45,6 @@ class Queen(Piece):
         moves = bishop_moves
         self.valid_moves = tuple(moves)
         self.color = color
-        self.is_null = False
 
 
 class Rook(Piece):
@@ -57,7 +53,6 @@ class Rook(Piece):
         moves = generate_rook_moves()
         self.valid_moves = tuple(moves)
         self.color = color
-        self.is_null = False
 
 
 class Bishop(Piece):
@@ -66,7 +61,6 @@ class Bishop(Piece):
         moves = generate_bishop_moves()
         self.valid_moves = tuple(moves)
         self.color = color
-        self.is_null = False
 
 
 class Knight(Piece):
@@ -74,7 +68,6 @@ class Knight(Piece):
         super().__init__()
         self.valid_moves = ((2, 1), (2, -1), (-2, 1), (-2, -1), (1, 2), (1, -2), (-1, -2), (-1, 2))
         self.color = color
-        self.is_null = False
 
 
 class WPawn(Piece):
@@ -83,7 +76,6 @@ class WPawn(Piece):
         self.valid_moves = ((1, -1), (-1, -1))
         self.moves = ((0, -1), (0, -2))
         self.color = "white"
-        self.is_null = False
 
 
 class BPawn(Piece):
@@ -92,4 +84,3 @@ class BPawn(Piece):
         self.valid_moves = ((1, 1), (-1, 1))
         self.moves = ((0, 1), (0, 2))
         self.color = "black"
-        self.is_null = False

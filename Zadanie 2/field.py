@@ -1,5 +1,4 @@
 from pieces import Piece
-from typing import List
 from statuses import Statuses
 
 

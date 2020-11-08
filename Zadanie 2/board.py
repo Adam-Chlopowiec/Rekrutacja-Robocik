@@ -68,19 +68,16 @@ class Board:
                                             self.board[y_move][x_move].status.append(Statuses.DEFENDED_BLACK_KING)
                                         else:
                                             self.board[y_move][x_move].status.append(Statuses.DEFENDED_WHITE_KING)
-                                        field.piece.defended_fields.append(self.board[y_move][x_move])
                                     else:
                                         if field.piece.color == "black":
                                             self.board[y_move][x_move].status.append(Statuses.ATTACKED_BLACK_KING)
                                         else:
                                             self.board[y_move][x_move].status.append(Statuses.ATTACKED_WHITE_KING)
-                                        field.piece.attacked_fields.append(self.board[y_move][x_move])
                                 else:
                                     if field.piece.color == "black":
                                         self.board[y_move][x_move].status.append(Statuses.ATTACKED_BLACK_KING)
                                     else:
                                         self.board[y_move][x_move].status.append(Statuses.ATTACKED_WHITE_KING)
-                                    field.piece.attacked_fields.append(self.board[y_move][x_move])
                             else:
                                 if self.board[y_move][x_move].status[0] != Statuses.NULL:
                                     if self.board[y_move][x_move].piece.color == field.piece.color:
@@ -88,19 +85,16 @@ class Board:
                                             self.board[y_move][x_move].status.append(Statuses.DEFENDED_BLACK)
                                         else:
                                             self.board[y_move][x_move].status.append(Statuses.DEFENDED_WHITE)
-                                        field.piece.defended_fields.append(self.board[y_move][x_move])
                                     else:
                                         if field.piece.color == "black":
                                             self.board[y_move][x_move].status.append(Statuses.ATTACKED_BLACK)
                                         else:
                                             self.board[y_move][x_move].status.append(Statuses.ATTACKED_WHITE)
-                                        field.piece.attacked_fields.append(self.board[y_move][x_move])
                                 else:
                                     if field.piece.color == "black":
                                         self.board[y_move][x_move].status.append(Statuses.ATTACKED_BLACK)
                                     else:
                                         self.board[y_move][x_move].status.append(Statuses.ATTACKED_WHITE)
-                                    field.piece.attacked_fields.append(self.board[y_move][x_move])
 
     def __is_move_blocked(self, piece: Piece, position: tuple, move: tuple) -> bool:
         if isinstance(piece, Knight) or isinstance(piece, King) or isinstance(piece, WPawn) or isinstance(piece, BPawn):
@@ -165,9 +159,8 @@ class Board:
                     return True
         return False
 
-    def __is_check(self, king_position) -> list:
+    def __get_checks(self) -> list:
         checks = []
-        # TODO: Sprawdzic czy nie mozna zamiast isinstance king zrobic position = white_king_position (albo black)
         def is_check_after_move(piece: Piece, position: tuple) -> tuple:
             for move in field.piece.valid_moves:
                 x_move = position[0] + move[0]
@@ -179,62 +172,28 @@ class Board:
                                 return True, move
             return False, None
 
-        if Statuses.ATTACKED_WHITE in self.board[king_position[1]][king_position[0]].status \
-                or Statuses.ATTACKED_BLACK in self.board[king_position[1]][king_position[0]].status:
-            # TODO: Do zastanowienia sie jeszcze
-            return checks
-        else:
-            for row in self.board:
-                for field in row:
-                    # TODO: Do zrobienia jeszcze pionki
-                    if not (isinstance(field.piece, BPawn) or isinstance(field.piece, WPawn)):
-                        for move in field.piece.valid_moves:
-                            x_move = field.x + move[0]
-                            y_move = field.y + move[1]
-                            if not (y_move >= self.BOARD_LENGTH or y_move < 0
-                                    or x_move >= self.BOARD_LENGTH or x_move < 0):
-                                if not self.__is_move_blocked(field.piece, (field.x, field.y), move):
-                                    if self.board[y_move][x_move].piece.color != field.piece.color:
-                                        checking_move = is_check_after_move(field.piece, (x_move, y_move))
-                                        if checking_move[0]:
-                                            initial_move = (x_move, y_move)
-                                            checks.append((initial_move, field, checking_move[1]))
-                                            """
-                                            if field.piece.color == "white":
-                                                if isinstance(field.piece, King):
-                                                    self.__remove_status(field.piece.attacked_fields, Statuses.ATTACKED_WHITE_KING)
-                                                    self.__remove_status(field.piece.defended_fields, Statuses.DEFENDED_WHITE_KING)
-                                                    self.__add_status()
-                                                else:
-                                                    self.__remove_status(field.piece.attacked_fields, Statuses.ATTACKED_WHITE)
-                                                    self.__remove_status(field.piece.attacked_fields, Statuses.DEFENDED_WHITE)
-                                            else:
-                                                if isinstance(field.piece, King):
-                                                    self.__remove_status(field.piece.attacked_fields, Statuses.ATTACKED_BLACK_KING)
-                                                    self.__remove_status(field.piece.defended_fields, Statuses.DEFENDED_BLACK_KING)
-                                                else:
-                                                    self.__remove_status(field.piece.attacked_fields, Statuses.ATTACKED_BLACK)
-                                                    self.__remove_status(field.piece.attacked_fields, Statuses.DEFENDED_BLACK)
-                                            """
-                                            # self.__move_piece((field.x, field.y), (x_move, y_move), field.piece)
-                                            # self.__clear_statuses()
-                                            # self.__fill_field_statuses()
-                                            # return x_move, y_move, field, checking_move[1]
-            return checks
+        for row in self.board:
+            for field in row:
+                # TODO: Do zrobienia jeszcze pionki
+                if not (isinstance(field.piece, BPawn) or isinstance(field.piece, WPawn)):
+                    for move in field.piece.valid_moves:
+                        x_move = field.x + move[0]
+                        y_move = field.y + move[1]
+                        if not (y_move >= self.BOARD_LENGTH or y_move < 0
+                                or x_move >= self.BOARD_LENGTH or x_move < 0):
+                            if not self.__is_move_blocked(field.piece, (field.x, field.y), move):
+                                if self.board[y_move][x_move].piece.color != field.piece.color:
+                                    checking_move = is_check_after_move(field.piece, (x_move, y_move))
+                                    if checking_move[0]:
+                                        initial_move = (x_move, y_move)
+                                        checks.append((initial_move, field, checking_move[1]))
+        return checks
 
     def __move_piece(self, old: tuple, new: tuple, piece: Piece):
         self.board[old[1]][old[0]].status[0] = Statuses.NULL
         self.board[old[1]][old[0]].piece = Piece()
         self.board[new[1]][new[0]].status[0] = Statuses.PIECE
         self.board[new[1]][new[0]].piece = piece
-
-    def __add_status(self, fields: tuple, status: Statuses):
-        for field in fields:
-            self.board[field[1]][field[0]].status.append(status)
-
-    def __remove_status(self, fields: list, status: Statuses):
-        for field in fields:
-            field.status.remove(status)
 
     def __clear_statuses(self):
         for row in self.board:
@@ -292,42 +251,60 @@ class Board:
         return False
 
     def __find_checkmate(self):
-        checks = self.__is_check(self.black_king_position)
-        mates = []
-        temp_board = deepcopy(self.board)
-        for check in checks:
-            x_move, y_move = check[0]
-            field = check[1]
-            checking_move = check[2]
-            self.__move_piece((field.x, field.y), (x_move, y_move), field.piece)
-            self.__clear_statuses()
-            self.__fill_field_statuses()
-            new_field = self.board[y_move][x_move]
-            if x_move != -1:
-                position = (x_move, y_move)
-                if not self.__is_attacked_no_king(position, "white"):
-                    if self.__is_attacked_king(position, "white"):
-                        if self.__is_defended(position, "white"):
+        def check_checks(checks: tuple, color: str):
+            for check in checks:
+                x_move, y_move = check[0]
+                field = check[1]
+                checking_move = check[2]
+                self.__move_piece((field.x, field.y), (x_move, y_move), field.piece)
+                self.__clear_statuses()
+                self.__fill_field_statuses()
+                new_field = self.board[y_move][x_move]
+                if x_move != -1:
+                    position = (x_move, y_move)
+                    if not self.__is_attacked_no_king(position, color):
+                        if self.__is_attacked_king(position, color):
+                            if self.__is_defended(position, color):
+                                if not self.__is_move_blocked(new_field.piece, (x_move, y_move), checking_move):
+                                    king_field = None
+                                    if color == "white":
+                                        king_field = self.board[self.black_king_position[1]][
+                                            self.black_king_position[0]]
+                                    else:
+                                        king_field = self.board[self.white_king_position[1]][
+                                            self.white_king_position[0]]
+                                    king = king_field.piece
+                                    if not self.__has_valid_move(king, king_field):
+                                        mates.append((x_move, y_move, field))
+                        else:
                             if not self.__is_move_blocked(new_field.piece, (x_move, y_move), checking_move):
-                                king_field = self.board[self.black_king_position[1]][self.black_king_position[0]]
+                                king_field = None
+                                if color == "white":
+                                    king_field = self.board[self.black_king_position[1]][self.black_king_position[0]]
+                                else:
+                                    king_field = self.board[self.white_king_position[1]][self.white_king_position[0]]
                                 king = king_field.piece
                                 if not self.__has_valid_move(king, king_field):
                                     mates.append((x_move, y_move, field))
-                    else:
-                        if not self.__is_move_blocked(new_field.piece, (x_move, y_move), checking_move):
-                            king_field = self.board[self.black_king_position[1]][self.black_king_position[0]]
-                            king = king_field.piece
-                            if not self.__has_valid_move(king, king_field):
-                                mates.append((x_move, y_move, field))
-            self.board = deepcopy(temp_board)
+                self.board = deepcopy(temp_board)
+        checks = self.__get_checks()
+        white_checks = tuple(filter(lambda check: check[1].piece.color == "white", checks))
+        black_checks = tuple(filter(lambda check: check[1].piece.color == "black", checks))
+        mates = []
+        temp_board = deepcopy(self.board)
+        color = "white"
+        check_checks(white_checks, color)
+        if len(mates) == 0:
+            color = "black"
+            check_checks(black_checks, color)
 
-        return mates
+        return mates, color
 
     def print_checkmate(self):
         self.__fill_field_statuses()
-        mates = self.__find_checkmate()
+        mates, color = self.__find_checkmate()
         if len(mates) > 0:
-            output = 'Bialy moze wygrac\n'
+            output = color + ' can win\n'
             for mate in mates:
                 x_axis, y_axis, field = mate
                 x_map = {
@@ -353,4 +330,4 @@ class Board:
                 output += '(' + x_map[field.x] + str(y_map[field.y]) + '-' + x_map[x_axis] + str(y_map[y_axis]) + ')\n'
             return output
         else:
-            return "Bialy nie ma mozliwego mata"
+            return "Nie ma mozliwego mata"
