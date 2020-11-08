@@ -107,44 +107,48 @@ class Board:
             return False
         else:
             if isinstance(piece, Rook):
-                return self.__is_rook_move_blocked(position, move)
+                return self.__is_rook_move_blocked(position, move, piece.color)
             elif isinstance(piece, Bishop):
-                return self.__is_bishop_move_blocked(position, move)
+                return self.__is_bishop_move_blocked(position, move, piece.color)
             elif isinstance(piece, Queen):
                 if move[0] == 0 or move[1] == 0:
-                    return self.__is_rook_move_blocked(position, move)
+                    return self.__is_rook_move_blocked(position, move, piece.color)
                 else:
-                    return self.__is_bishop_move_blocked(position, move)
+                    return self.__is_bishop_move_blocked(position, move, piece.color)
 
-    def __is_rook_move_blocked(self, position: tuple, move: tuple) -> bool:
+    def __is_rook_move_blocked(self, position: tuple, move: tuple, color: str) -> bool:
         if move[0] == 0:
             if move[1] > 0:
                 for y in range(position[1] + 1, position[1] + move[1]):
-                    if not isinstance(self.board[y][position[0]].piece, King):
+                    if not (isinstance(self.board[y][position[0]].piece, King)
+                            and self.board[y][position[0]].piece.color != color):
                         if self.board[y][position[0]].status[0] == Statuses.PIECE:
                             return True
                 return False
             else:
                 for y in range(position[1] - 1, position[1] + move[1], -1):
-                    if not isinstance(self.board[y][position[0]].piece, King):
+                    if not (isinstance(self.board[y][position[0]].piece, King)
+                            and self.board[y][position[0]].piece.color != color):
                         if self.board[y][position[0]].status[0] == Statuses.PIECE:
                             return True
                 return False
         else:
             if move[0] > 0:
                 for x in range(position[0] + 1, position[0] + move[0]):
-                    if not isinstance(self.board[position[1]][x].piece, King):
+                    if not (isinstance(self.board[position[1]][x].piece, King)
+                            and self.board[position[1]][x].piece.color != color):
                         if self.board[position[1]][x].status[0] == Statuses.PIECE:
                             return True
                 return False
             else:
                 for x in range(position[0] - 1, position[0] + move[0], -1):
-                    if not isinstance(self.board[position[1]][x].piece, King):
+                    if not (isinstance(self.board[position[1]][x].piece, King)
+                            and self.board[position[1]][x].piece.color != color):
                         if self.board[position[1]][x].status[0] == Statuses.PIECE:
                             return True
                 return False
 
-    def __is_bishop_move_blocked(self, position: tuple, move: tuple) -> bool:
+    def __is_bishop_move_blocked(self, position: tuple, move: tuple, color: str) -> bool:
         x, y = [], []
         if move[0] > 0:
             x = range(1, move[0])
@@ -155,7 +159,8 @@ class Board:
         else:
             y = range(-1, move[1], -1)
         for i, j in zip(x, y):
-            if not isinstance(self.board[position[1] + j][position[0] + i].piece, King):
+            if not (isinstance(self.board[position[1] + j][position[0] + i].piece, King)
+                    and self.board[position[1] + j][position[0] + i].piece.color != color):
                 if self.board[position[1] + j][position[0] + i].status[0] == Statuses.PIECE:
                     return True
         return False
