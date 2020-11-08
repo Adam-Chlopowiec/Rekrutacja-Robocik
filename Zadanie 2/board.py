@@ -10,6 +10,7 @@ class Board:
         self.white_king_position = ()
         self.black_king_position = ()
         self.board = self.__parse_board(matrix)
+        self.BOARD_LENGTH = 8
 
     def __parse_board(self, matrix: List[List[str]]) -> List[List[Field]]:
         board = []
@@ -58,7 +59,7 @@ class Board:
                 for move in field.piece.valid_moves:
                     x_move = field.x + move[0]
                     y_move = field.y + move[1]
-                    if not (y_move >= (len(self.board) - 1) or y_move < 0 or x_move >= (len(row) - 1) or x_move < 0):
+                    if not (y_move >= self.BOARD_LENGTH or y_move < 0 or x_move >= self.BOARD_LENGTH or x_move < 0):
                         if not self.__is_move_blocked(field.piece, (field.x, field.y), move):
                             if isinstance(field.piece, King):
                                 if self.board[y_move][x_move].status[0] != Statuses.NULL:
@@ -166,7 +167,7 @@ class Board:
             for move in field.piece.valid_moves:
                 x_move = position[0] + move[0]
                 y_move = position[1] + move[1]
-                if not (y_move >= (len(self.board) - 1) or y_move < 0 or x_move >= (len(row) - 1) or x_move < 0):
+                if not (y_move >= self.BOARD_LENGTH or y_move < 0 or x_move >= self.BOARD_LENGTH or x_move < 0):
                     if not self.__is_move_blocked(piece, position, move):
                         if piece.color != self.board[y_move][x_move].piece.color:
                             if isinstance(self.board[y_move][x_move].piece, King):
@@ -185,8 +186,8 @@ class Board:
                         for move in field.piece.valid_moves:
                             x_move = field.x + move[0]
                             y_move = field.y + move[1]
-                            if not (y_move >= (len(self.board) - 1) or y_move < 0
-                                    or x_move >= (len(row) - 1) or x_move < 0):
+                            if not (y_move >= self.BOARD_LENGTH or y_move < 0
+                                    or x_move >= self.BOARD_LENGTH or x_move < 0):
                                 if not self.__is_move_blocked(field.piece, (field.x, field.y), move):
                                     if self.board[y_move][x_move].piece.color != field.piece.color:
                                         checking_move = is_check_after_move(field.piece, (x_move, y_move))
@@ -263,7 +264,7 @@ class Board:
         for move in king.valid_moves:
             x_move = field.x + move[0]
             y_move = field.y + move[1]
-            if not (y_move >= (len(self.board) - 1) or y_move < 0 or x_move >= 8 or x_move < 0):
+            if not (y_move >= self.BOARD_LENGTH or y_move < 0 or x_move >= self.BOARD_LENGTH or x_move < 0):
                 if self.board[y_move][x_move].status[0] == Statuses.NULL:
                     if king.color == "white":
                         if not (Statuses.ATTACKED_BLACK in self.board[y_move][x_move].status
