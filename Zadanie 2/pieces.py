@@ -23,6 +23,7 @@ def generate_rook_moves():
 
 class Piece:
     def __init__(self):
+        # TODO: Wywalic self.is_null
         self.valid_moves = ()
         self.attacked_fields = []
         self.defended_fields = []
@@ -33,7 +34,7 @@ class Piece:
 class King(Piece):
     def __init__(self, color: str):
         super().__init__()
-        self.valid_moves = ((-1, -1), (-1, 0), (-1, 1), (1, 0), (1, 1), (1, 0), (1, -1))
+        self.valid_moves = ((-1, -1), (-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1))
         self.color = color
         self.is_null = False
 
@@ -79,8 +80,8 @@ class Knight(Piece):
 class WPawn(Piece):
     def __init__(self):
         super().__init__()
-        self.valid_moves = ((1, 1), (-1, 1))
-        self.moves = ((0, 1), (0, 2))
+        self.valid_moves = ((1, -1), (-1, -1))
+        self.moves = ((0, -1), (0, -2))
         self.color = "white"
         self.is_null = False
 
@@ -88,7 +89,7 @@ class WPawn(Piece):
 class BPawn(Piece):
     def __init__(self):
         super().__init__()
-        self.valid_moves = ((1, -1), (-1, -1))
-        self.moves = ((0, -1), (0, -2))
+        self.valid_moves = ((1, 1), (-1, 1))
+        self.moves = ((0, 1), (0, 2))
         self.color = "black"
         self.is_null = False
