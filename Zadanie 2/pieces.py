@@ -1,31 +1,43 @@
-def generate_bishop_moves() -> list:
-    ascending_diagonal = list(range(-7, 0))
-    ascending_diagonal.extend(list(range(1, 8)))
+from typing import List, Tuple
+
+
+def generate_bishop_moves() -> List[Tuple[int, int]]:
+    """
+    Generates list of diagonal moves\n
+    :return: Returns list of paired integer tuples
+    """
     ascending_diagonal = list(range(-7, 8))
-    descending_diagonal = list(range(7, 0, -1))
-    descending_diagonal.extend(list(range(-1, -8, -1)))
+    ascending_diagonal.remove(0)
+    descending_diagonal = list(range(7, -8, -1))
+    descending_diagonal.remove(0)
     moves = []
-    for i, j in zip(ascending_diagonal, ascending_diagonal):
-        moves.append((i, j))
+    for i in ascending_diagonal:
+        moves.append((i, i))
     for i, j in zip(ascending_diagonal, descending_diagonal):
         moves.append((i, j))
     return moves
 
 
-def generate_rook_moves() -> list:
-    distances = list(range(-7, 0))
-    distances.extend(list(range(1, 8)))
+def generate_rook_moves() -> List[Tuple[int, int]]:
+    """
+    Generates list of vertical and horizontal moves\n
+    :return: Returns list of paired integer tuples
+    """
+    distances = list(range(-7, 8))
+    distances.remove(0)
     x_moves = [(distance, 0) for distance in distances]
     y_moves = [(0, distance) for distance in distances]
     x_moves.extend(y_moves)
-    moves = x_moves
-    return moves
+    return x_moves
 
 
 class Piece:
+    """
+    Most general piece, parent to every other. Added to empty fields.
+    """
     def __init__(self):
-        self.valid_moves = ()
-        self.color = ''
+        self.valid_moves: tuple = ()
+        self.color: str = ''
 
 
 class King(Piece):
@@ -70,7 +82,7 @@ class WPawn(Piece):
     def __init__(self):
         super().__init__()
         self.valid_moves = ((0, -1), (0, -2))
-        self.moves = ((1, -1), (-1, -1))
+        self.moves: tuple = ((1, -1), (-1, -1))
         self.color = "white"
 
 
@@ -78,5 +90,5 @@ class BPawn(Piece):
     def __init__(self):
         super().__init__()
         self.valid_moves = ((0, 1), (0, 2))
-        self.moves = ((1, 1), (-1, 1))
+        self.moves: tuple = ((1, 1), (-1, 1))
         self.color = "black"

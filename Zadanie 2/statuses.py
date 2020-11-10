@@ -2,6 +2,9 @@ from enum import Enum
 
 
 class Statuses(Enum):
+    """
+    Statuses mark fields on board
+    """
     NULL = 0
     PIECE = 1
     ATTACKED_WHITE = 2
