@@ -1,6 +1,7 @@
-def generate_bishop_moves():
+def generate_bishop_moves() -> list:
     ascending_diagonal = list(range(-7, 0))
     ascending_diagonal.extend(list(range(1, 8)))
+    ascending_diagonal = list(range(-7, 8))
     descending_diagonal = list(range(7, 0, -1))
     descending_diagonal.extend(list(range(-1, -8, -1)))
     moves = []
@@ -11,7 +12,7 @@ def generate_bishop_moves():
     return moves
 
 
-def generate_rook_moves():
+def generate_rook_moves() -> list:
     distances = list(range(-7, 0))
     distances.extend(list(range(1, 8)))
     x_moves = [(distance, 0) for distance in distances]
@@ -24,8 +25,6 @@ def generate_rook_moves():
 class Piece:
     def __init__(self):
         self.valid_moves = ()
-        self.attacked_fields = []
-        self.defended_fields = []
         self.color = ''
 
 
@@ -42,24 +41,21 @@ class Queen(Piece):
         bishop_moves = generate_bishop_moves()
         rook_moves = generate_rook_moves()
         bishop_moves.extend(rook_moves)
-        moves = bishop_moves
-        self.valid_moves = tuple(moves)
+        self.valid_moves = tuple(bishop_moves)
         self.color = color
 
 
 class Rook(Piece):
     def __init__(self, color: str):
         super().__init__()
-        moves = generate_rook_moves()
-        self.valid_moves = tuple(moves)
+        self.valid_moves = tuple(generate_rook_moves())
         self.color = color
 
 
 class Bishop(Piece):
     def __init__(self, color: str):
         super().__init__()
-        moves = generate_bishop_moves()
-        self.valid_moves = tuple(moves)
+        self.valid_moves = tuple(generate_bishop_moves())
         self.color = color
 
 
@@ -73,14 +69,14 @@ class Knight(Piece):
 class WPawn(Piece):
     def __init__(self):
         super().__init__()
-        self.valid_moves = ((1, -1), (-1, -1))
-        self.moves = ((0, -1), (0, -2))
+        self.valid_moves = ((0, -1), (0, -2))
+        self.moves = ((1, -1), (-1, -1))
         self.color = "white"
 
 
 class BPawn(Piece):
     def __init__(self):
         super().__init__()
-        self.valid_moves = ((1, 1), (-1, 1))
-        self.moves = ((0, 1), (0, 2))
+        self.valid_moves = ((0, 1), (0, 2))
+        self.moves = ((1, 1), (-1, 1))
         self.color = "black"
