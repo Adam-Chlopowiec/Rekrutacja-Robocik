@@ -60,8 +60,7 @@ class Board:
                             self.white_king_position = (j, i)
                     else:
                         fields = create_fields(colors[1], i, j)
-                        if piece == 'p':
-                            fields[piece] = Field(BPawn(), j, i, Statuses.PIECE)
+                        fields['p'] = Field(BPawn(), j, i, Statuses.PIECE)
                         if piece == 'W':
                             self.black_king_position = (j, i)
                     board[i].append(fields[piece])
@@ -123,9 +122,10 @@ class Board:
                     defenses = [Statuses.DEFENDED_WHITE_KING, Statuses.DEFENDED_BLACK_KING]
                     append_status(x_move, y_move, attacks, defenses)
                 else:
-                    attacks = [Statuses.ATTACKED_WHITE, Statuses.ATTACKED_BLACK]
-                    defenses = [Statuses.DEFENDED_WHITE, Statuses.DEFENDED_BLACK]
-                    append_status(x_move, y_move, attacks, defenses)
+                    if not self.__is_move_blocked(field.piece, (field.x, field.y), move):
+                        attacks = [Statuses.ATTACKED_WHITE, Statuses.ATTACKED_BLACK]
+                        defenses = [Statuses.DEFENDED_WHITE, Statuses.DEFENDED_BLACK]
+                        append_status(x_move, y_move, attacks, defenses)
 
         for row in self.board:
             for field in row:
@@ -184,37 +184,6 @@ class Board:
         else:
             return self.board[position[1] + move[1]][position[0] + move[0]].status[0] == Statuses.NULL
 
-    def __is_blocked_at(self, x: int, y: int, color: str) -> bool:
-        """
-        Checks if rook move is blocked at given coordinates\n
-        :param x: Horizontal coordinate (0 starts at left of imaginary chessboard)
-        :param y: Vertical coordinate (0 starts at top of imaginary chessboard)
-        :return: True if move is blocked, otherwise False
-        """
-        if not (isinstance(self.board[y][x].piece, King)
-                and self.board[y][x].piece.color != color):
-            if self.board[y][x].status[0] == Statuses.PIECE:
-                return True
-        return False
-
-    def __is_blocked_at_coords(self, position: Tuple[int, int], color: str, coords: range, is_x: bool) -> bool:
-        """
-        Checks if rook move is blocked at given range of coordinates\n
-        :param interval: Range of coordinates
-        :param is_x: Defines whether coordinates in interval should be generated as x or y
-        :return: True if move is blocked at any generated coordinate, False if is not blocked at all
-        """
-        if is_x:
-            for x in coords:
-                if self.__is_blocked_at(x, position[1], color):
-                    return True
-            return False
-        else:
-            for y in coords:
-                if self.__is_blocked_at(position[0], y, color):
-                    return True
-            return False
-
     def __is_rook_move_blocked(self, position: Tuple[int, int], move: Tuple[int, int], color: str) -> bool:
         """
         Checks if rook move from position is blocked\n
@@ -223,20 +192,47 @@ class Board:
         :param color: Color of the rook
         :return: True if move is blocked, otherwise False
         """
+        def is_blocked_at(x: int, y: int) -> bool:
+            """
+            Checks if rook move is blocked at given coordinates\n
+            :param x: Horizontal coordinate (0 starts at left of imaginary chessboard)
+            :param y: Vertical coordinate (0 starts at top of imaginary chessboard)
+            :return: True if move is blocked, otherwise False
+            """
+            if not (isinstance(self.board[y][x].piece, King)
+                    and self.board[y][x].piece.color != color):
+                if self.board[y][x].status[0] == Statuses.PIECE:
+                    return True
+            return False
+
+        def is_blocked_at_range(coords: range, is_x: bool) -> bool:
+            """
+            Checks if rook move is blocked at given range of coordinates\n
+            :param coords: Range of coordinates
+            :param is_x: Defines whether coordinates in interval should be generated as x or y
+            :return: True if move is blocked at any generated coordinate, False if is not blocked at all
+            """
+            if is_x:
+                for x in coords:
+                    if is_blocked_at(x, position[1]):
+                        return True
+                return False
+            else:
+                for y in coords:
+                    if is_blocked_at(position[0], y):
+                        return True
+                return False
+
         if move[0] == 0:
             if move[1] > 0:
-                coords = range(position[1] + 1, position[1] + move[1])
-                return self.__is_blocked_at_coords(position, color, coords, False)
+                return is_blocked_at_range(range(position[1] + 1, position[1] + move[1]), False)
             else:
-                coords = range(position[1] - 1, position[1] + move[1], -1)
-                return self.__is_blocked_at_coords(position, color, coords, False)
+                return is_blocked_at_range(range(position[1] - 1, position[1] + move[1], -1), False)
         else:
             if move[0] > 0:
-                coords = range(position[0] + 1, position[0] + move[0])
-                return self.__is_blocked_at_coords(position, color, coords, True)
+                return is_blocked_at_range(range(position[0] + 1, position[0] + move[0]), True)
             else:
-                coords = range(position[0] - 1, position[0] + move[0], -1)
-                return self.__is_blocked_at_coords(position, color, coords, True)
+                return is_blocked_at_range(range(position[0] - 1, position[0] + move[0], -1), True)
 
     def __generate_bishop_coords(self, move: Tuple[int, int]) -> Tuple[range, range]:
         """
@@ -280,64 +276,69 @@ class Board:
         """
         if isinstance(piece, Knight) or isinstance(piece, King) or isinstance(piece, WPawn) or isinstance(piece, BPawn):
             return False
-        else:
-            if isinstance(piece, Rook):
+        elif isinstance(piece, Rook):
+            return self.__is_rook_move_blockable(position, move, piece.color)
+        elif isinstance(piece, Bishop):
+            return self.__is_bishop_move_blockable(position, move, piece.color)
+        elif isinstance(piece, Queen):
+            if move[0] == 0 or move[1] == 0:
                 return self.__is_rook_move_blockable(position, move, piece.color)
-            elif isinstance(piece, Bishop):
+            else:
                 return self.__is_bishop_move_blockable(position, move, piece.color)
-            elif isinstance(piece, Queen):
-                if move[0] == 0 or move[1] == 0:
-                    return self.__is_rook_move_blockable(position, move, piece.color)
-                else:
-                    return self.__is_bishop_move_blockable(position, move, piece.color)
 
     def __is_rook_move_blockable(self, position: Tuple[int, int], move: Tuple[int, int], color: str) -> bool:
+        """
+        Checks if rook move from position is blockable\n
+        :param position: Position of the rook
+        :param move: Move to check
+        :param color: Color of the rook
+        :return: True if move is blockable, otherwise False
+        """
+        def is_blocked_at(x: int, y: int) -> bool:
+            """
+            Checks if rook move is blocked at given coordinates\n
+            :param x: Horizontal coordinate (0 starts at left of imaginary chessboard)
+            :param y: Vertical coordinate (0 starts at top of imaginary chessboard)
+            :return: True if move is blockable, otherwise False
+            """
+            if not (isinstance(self.board[y][x].piece, King)
+                    and self.board[y][x].piece.color != color):
+                if color == "black":
+                    if Statuses.ATTACKED_WHITE in self.board[y][x].status:
+                        return True
+                else:
+                    if Statuses.ATTACKED_BLACK in self.board[y][x].status:
+                        return True
+            return False
+
+        def is_blocked_at_range(coords: range, is_x: bool) -> bool:
+            """
+            Checks if rook move is blocked at given range of coordinates\n
+            :param coords: Range of coordinates
+            :param is_x: Defines whether coordinates in interval should be generated as x or y
+            :return: True if move is blockable at any generated coordinate, otherwise not
+            """
+            if is_x:
+                for x in coords:
+                    if is_blocked_at(x, position[1]):
+                        return True
+                return False
+            else:
+                for y in coords:
+                    if is_blocked_at(position[0], y):
+                        return True
+                return False
+
         if move[0] == 0:
             if move[1] > 0:
-                for y in range(position[1] + 1, position[1] + move[1]):
-                    if not (isinstance(self.board[y][position[0]].piece, King)
-                            and self.board[y][position[0]].piece.color != color):
-                        if color == "black":
-                            if Statuses.ATTACKED_WHITE in self.board[y][position[0]].status:
-                                return True
-                        else:
-                            if Statuses.ATTACKED_BLACK in self.board[y][position[0]].status:
-                                return True
-                return False
+                return is_blocked_at_range(range(position[1] + 1, position[1] + move[1]), False)
             else:
-                for y in range(position[1] - 1, position[1] + move[1], -1):
-                    if not (isinstance(self.board[y][position[0]].piece, King)
-                            and self.board[y][position[0]].piece.color != color):
-                        if color == "black":
-                            if Statuses.ATTACKED_WHITE in self.board[y][position[0]].status:
-                                return True
-                        else:
-                            if Statuses.ATTACKED_BLACK in self.board[y][position[0]].status:
-                                return True
-                return False
+                return is_blocked_at_range(range(position[1] - 1, position[1] + move[1], -1), False)
         else:
             if move[0] > 0:
-                for x in range(position[0] + 1, position[0] + move[0]):
-                    if not (isinstance(self.board[position[1]][x].piece, King)
-                            and self.board[position[1]][x].piece.color != color):
-                        if color == "black":
-                            if Statuses.ATTACKED_WHITE in self.board[position[1]][x].status:
-                                return True
-                        else:
-                            if Statuses.ATTACKED_BLACK in self.board[position[1]][x].status:
-                                return True
-                return False
+                return is_blocked_at_range(range(position[0] + 1, position[0] + move[0]), True)
             else:
-                for x in range(position[0] - 1, position[0] + move[0], -1):
-                    if not (isinstance(self.board[position[1]][x].piece, King)
-                            and self.board[position[1]][x].piece.color != color):
-                        if color == "black":
-                            if Statuses.ATTACKED_WHITE in self.board[position[1]][x].status:
-                                return True
-                        else:
-                            if Statuses.ATTACKED_BLACK in self.board[position[1]][x].status:
-                                return True
-                return False
+                return is_blocked_at_range(range(position[0] - 1, position[0] + move[0], -1), True)
 
     def __is_bishop_move_blockable(self, position: tuple, move: tuple, color: str) -> bool:
         x, y = self.__generate_bishop_coords(move)
