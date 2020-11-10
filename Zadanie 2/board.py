@@ -340,7 +340,14 @@ class Board:
             else:
                 return is_blocked_at_range(range(position[0] - 1, position[0] + move[0], -1), True)
 
-    def __is_bishop_move_blockable(self, position: tuple, move: tuple, color: str) -> bool:
+    def __is_bishop_move_blockable(self, position: Tuple[int, int], move: Tuple[int, int], color: str) -> bool:
+        """
+        Checks if bishop move from position is blockable\n
+        :param position: Position of the rook
+        :param move: Move to check
+        :param color: Color of the rook
+        :return: True if move is blockable, otherwise False
+        """
         x, y = self.__generate_bishop_coords(move)
         for i, j in zip(x, y):
             if not (isinstance(self.board[position[1] + j][position[0] + i].piece, King)
@@ -354,11 +361,26 @@ class Board:
                 return True
         return False
 
-    def __get_checks(self) -> list:
+    def __get_checks(self) -> List[Tuple[Tuple[int, int], Field, Tuple[int, int]]]:
+        """
+        Returns all possible checks on current chessboard state
+        :return: List of tuples of move, field and checking move
+        """
         checks = []
 
-        def is_check_after_move(piece: Piece, position: tuple) -> tuple:
-            def check_move(move: tuple) -> tuple:
+        def is_check_after_move(piece: Piece, position: Tuple[int, int]) -> Tuple[bool, Tuple[int, int]]:
+            """
+            Checks whether there is any possible check after move
+            :param piece: Piece performing move
+            :param position: Position of the piece
+            :return: True and move which results in check if there is any, False and (0, 0) if not
+            """
+            def check_move(move: Tuple[int, int]) -> Tuple[bool, Tuple[int, int]]:
+                """
+                Checks if given move results in check
+                :param move: Move with possibility of checking
+                :return: True and move which results in check if there is any, False and (0, 0) if not
+                """
                 x_move = position[0] + move[0]
                 y_move = position[1] + move[1]
                 if self.__is_in_board(x_move, y_move):
@@ -366,7 +388,7 @@ class Board:
                         if piece.color != self.board[y_move][x_move].piece.color:
                             if isinstance(self.board[y_move][x_move].piece, King):
                                 return True, move
-                return False, None
+                return False, (0, 0)
 
             if not (isinstance(field.piece, BPawn) or isinstance(field.piece, WPawn)):
                 for move in field.piece.valid_moves:
@@ -379,9 +401,14 @@ class Board:
                     if checking_move[0]:
                         return checking_move
 
-            return False, None
+            return False, (0, 0)
 
-        def find_check(move: tuple):
+        def find_check(move: Tuple[int, int]) -> None:
+            """
+            Searches for possibilities of checks after given move
+            :param move: Move to check in terms of possibility of finding checks
+            :return: None
+            """
             x_move = field.x + move[0]
             y_move = field.y + move[1]
             if self.__is_in_board(x_move, y_move):
@@ -401,18 +428,35 @@ class Board:
                         find_check(move)
         return checks
 
-    def __move_piece(self, old: tuple, new: tuple, piece: Piece):
+    def __move_piece(self, old: Tuple[int, int], new: Tuple[int, int], piece: Piece) -> None:
+        """
+        Moves piece from old to new position
+        :param old: Position to be moved from
+        :param new: Position to be moved to
+        :param piece: Piece to be moved
+        :return: None
+        """
         self.board[old[1]][old[0]].status[0] = Statuses.NULL
         self.board[old[1]][old[0]].piece = Piece()
         self.board[new[1]][new[0]].status[0] = Statuses.PIECE
         self.board[new[1]][new[0]].piece = piece
 
-    def __clear_statuses(self):
+    def __clear_statuses(self) -> None:
+        """
+        Clears statuses of all fields besides first
+        :return: None
+        """
         for row in self.board:
             for field in row:
                 field.status = [field.status[0]]
 
-    def __is_attacked_no_king(self, position: tuple, color: str) -> bool:
+    def __is_attacked_no_king(self, position: Tuple[int, int], color: str) -> bool:
+        """
+        Checks whether position is attacked by any piece but not king
+        :param position: Position to check
+        :param color: Color of piece on position
+        :return: True if position is attacked
+        """
         if color == "white":
             return Statuses.ATTACKED_BLACK in self.board[position[1]][position[0]].status \
                    or Statuses.DEFENDED_BLACK in self.board[position[1]][position[0]].status
@@ -420,7 +464,13 @@ class Board:
             return Statuses.ATTACKED_WHITE in self.board[position[1]][position[0]].status \
                    or Statuses.DEFENDED_WHITE in self.board[position[1]][position[0]].status
 
-    def __is_attacked_king(self, position: tuple, color: str) -> bool:
+    def __is_attacked_king(self, position: Tuple[int, int], color: str) -> bool:
+        """
+        Checks whether position is attacked by king of opposite color
+        :param position: Position to check
+        :param color: Color of piece on position
+        :return: True if position is attacked
+        """
         if color == "white":
             return Statuses.ATTACKED_BLACK_KING in self.board[position[1]][position[0]].status \
                    or Statuses.DEFENDED_BLACK_KING in self.board[position[1]][position[0]].status
@@ -428,7 +478,13 @@ class Board:
             return Statuses.ATTACKED_WHITE_KING in self.board[position[1]][position[0]].status \
                    or Statuses.DEFENDED_WHITE_KING in self.board[position[1]][position[0]].status
 
-    def __is_defended(self, position: tuple, color: str) -> bool:
+    def __is_defended(self, position: Tuple[int, int], color: str) -> bool:
+        """
+        Checks whether position is defended by piece of the same color
+        :param position: Position to check
+        :param color: Color of piece on position
+        :return: True if position is attacked
+        """
         if color == "white":
             return Statuses.DEFENDED_WHITE in self.board[position[1]][position[0]].status \
                    or Statuses.DEFENDED_WHITE_KING in self.board[position[1]][position[0]].status
@@ -436,7 +492,14 @@ class Board:
             return Statuses.DEFENDED_BLACK in self.board[position[1]][position[0]].status \
                    or Statuses.DEFENDED_BLACK_KING in self.board[position[1]][position[0]].status
 
-    def __has_valid_move(self, king: Piece, field: Field, temp_king_position: tuple) -> bool:
+    def __has_valid_move(self, king: Piece, field: Field, temp_king_position: Tuple[int, int]) -> bool:
+        """
+        Checks whether king has valid move
+        :param king: King which will be checked
+        :param field: Field of king
+        :param temp_king_position: Original position of king
+        :return: True if king has valid move
+        """
         temp = deepcopy(self.board)
         for move in king.valid_moves:
             x_move = field.x + move[0]
@@ -461,7 +524,6 @@ class Board:
                             return True
                 else:
                     if self.board[y_move][x_move].piece.color != king.color:
-                        color = ''
                         if king.color == "white":
                             color = "black"
                         else:
@@ -475,8 +537,37 @@ class Board:
             self.board = deepcopy(temp)
         return False
 
-    def __find_checkmate(self):
-        def check_checks(checks: tuple, color: str):
+    def __find_checkmate(self) -> Tuple[List[Tuple[int, int, Field]], str]:
+        """
+        Finds all possible checkmates in one for white or for black if there are no checkmates for white
+        :return: Tuple of list of tuples of checkmating moves and color of checkmating piece
+        """
+        def check_checks(checks: Tuple[Tuple[Tuple[int, int], Field, Tuple[int, int]]], color: str) -> None:
+            """
+            Checks whether given checks are checkmates
+            :param checks: Possible checkmates
+            :param color: Color of checking pieces
+            :return: None
+            """
+            def append_possible_checkmates(piece: Piece, position: Tuple[int, int], move) -> None:
+                """
+                Appends move to list if it results in checkmate
+                :param piece: Piece performing check
+                :param position: Position of check
+                :param move: Move attacking king's field
+                :return: None
+                """
+                if not self.__is_move_blockable(piece, position, move):
+                    if color == "white":
+                        king_field = self.board[self.black_king_position[1]][
+                            self.black_king_position[0]]
+                    else:
+                        king_field = self.board[self.white_king_position[1]][
+                            self.white_king_position[0]]
+                    king = king_field.piece
+                    if not self.__has_valid_move(king, king_field, temp_king_position):
+                        mates.append((x_move, y_move, field))
+
             if color == "white":
                 temp_king_position = self.black_king_position
             else:
@@ -494,25 +585,9 @@ class Board:
                     if not self.__is_attacked_no_king(position, color):
                         if self.__is_attacked_king(position, color):
                             if self.__is_defended(position, color):
-                                if not self.__is_move_blockable(new_field.piece, (x_move, y_move), checking_move):
-                                    if color == "white":
-                                        king_field = self.board[self.black_king_position[1]][
-                                            self.black_king_position[0]]
-                                    else:
-                                        king_field = self.board[self.white_king_position[1]][
-                                            self.white_king_position[0]]
-                                    king = king_field.piece
-                                    if not self.__has_valid_move(king, king_field, temp_king_position):
-                                        mates.append((x_move, y_move, field))
+                                append_possible_checkmates(new_field.piece, (x_move, y_move), checking_move)
                         else:
-                            if not self.__is_move_blockable(new_field.piece, (x_move, y_move), checking_move):
-                                if color == "white":
-                                    king_field = self.board[self.black_king_position[1]][self.black_king_position[0]]
-                                else:
-                                    king_field = self.board[self.white_king_position[1]][self.white_king_position[0]]
-                                king = king_field.piece
-                                if not self.__has_valid_move(king, king_field, temp_king_position):
-                                    mates.append((x_move, y_move, field))
+                            append_possible_checkmates(new_field.piece, (x_move, y_move), checking_move)
                 if color == "white":
                     self.black_king_position = temp_king_position
                 else:
@@ -532,7 +607,11 @@ class Board:
 
         return mates, color
 
-    def print_checkmate(self):
+    def print_checkmate(self) -> str:
+        """
+        Creates string containing possible checkmates
+        :return: Output string
+        """
         self.__fill_field_statuses()
         mates, color = self.__find_checkmate()
         if len(mates) > 0:
